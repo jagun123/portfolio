@@ -1,27 +1,43 @@
-name: CI/CD Pipeline
+name: Portfolio CI/CD Pipeline
 
 on:
   push:
     branches:
-      - main  # Trigger on pushes to the main branch
+      - main  # Trigger this action on push to the main branch
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
+      # Step 1: Checkout the code
       - name: Checkout code
         uses: actions/checkout@v2
 
+      # Step 2: Log in to Amazon ECR
       - name: Log in to Amazon ECR
+        id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build and push Docker image
+      # Step 3: Build the Docker image and push it to ECR
+      - name: Build, tag, and push Docker image
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+          IMAGE_TAG: latest
         run: |
-          echo "${{ secrets.AWS_SECRET_ACCESS_KEY }}" | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+          # Build the Docker image
           docker build -t jagan14-portfolio .
-          docker tag jagan14-portfolio:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/my-portfolio:latest
-          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/my-portfolio:latest
+
+          # Tag the image
+          docker tag jagan14-portfolio:latest $ECR_REGISTRY/jagan14-portfolio:$IMAGE_TAG
+
+          # Push the image to Amazon ECR
+          docker push $ECR_REGISTRY/jagan14-portfolio:$IMAGE_TAG
+
+      # Step 4: Deploy the Docker image to your environment (optional - you can add this step for deployment)
+      # You can define deployment to ECS, EKS, or other AWS services in this section.
+
 
 
 
