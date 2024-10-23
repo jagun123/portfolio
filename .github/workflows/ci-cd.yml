@@ -18,11 +18,13 @@ jobs:
       - name: Log in to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
+        with:
+          aws-region: ${{ secrets.AWS_REGION }}  # Use AWS region from the GitHub secrets
 
       # Step 3: Build the Docker image and push it to ECR
       - name: Build, tag, and push Docker image
         env:
-          AWS_REGION: ${{ secrets.AWS_REGION }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}  # Use AWS region from the GitHub secrets
           ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
           IMAGE_TAG: latest
         run: |
@@ -33,10 +35,8 @@ jobs:
           docker tag jagan14-portfolio:latest $ECR_REGISTRY/jagan14-portfolio:$IMAGE_TAG
 
           # Push the image to Amazon ECR
-          docker push $ECR_REGISTRY/jagan14-portfolio:$IMAGE_TAG
+          docker push $ECR_REGISTRY/my-portfolio:$IMAGE_TAG
 
-      # Step 4: Deploy the Docker image to your environment (optional - you can add this step for deployment)
-      # You can define deployment to ECS, EKS, or other AWS services in this section.
 
 
 
